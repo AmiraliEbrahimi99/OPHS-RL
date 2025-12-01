@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import torch
-from OPHSProblemDef import get_random_problems, augment_xy_data_by_8_fold, augment_xy_data_by_16_fold
+from OPHSProblemDef import get_random_problems, augment_xy_data_by_8_fold, augment_xy_data_by_16_fold, augment_xy_data_by_32_fold
 
 @dataclass 
 class Reset_state : 
@@ -158,6 +158,15 @@ class OPHSEnv:
                     node_prize = node_prize.repeat(16, 1, 1)
                 else:
                     node_prize = node_prize.repeat(16, 1)
+            elif aug_factor == 32:
+                self.batch_size = self.batch_size * 32
+                self.depot_xy = augment_xy_data_by_32_fold(depot_xy)
+                self.node_xy = augment_xy_data_by_32_fold(node_xy)
+                self.trip_length = self.trip_length.repeat(32, 1)
+                if self.stochastic_prize:
+                    node_prize = node_prize.repeat(32, 1, 1)
+                else:
+                    node_prize = node_prize.repeat(32, 1)
             else:
                 raise NotImplementedError
                 

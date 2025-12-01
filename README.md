@@ -1,4 +1,12 @@
-# POMO for CO
+# RL framework for OPHS
+
+**Code, instances, and experimental results for the paper:**  
+**_“Reinforcement Learning for the Orienteering Problem with Hotel Selection under Uncertainty”_**
+
+**Authors:** Amirali Ebrahimi, Ali Divsalar  
+**Institution:** Babol Noshirvani University of Technology**
+
+---
 
 We provide code for three CO (Combinatorial Optimization) problems, with some variations for each:
 
@@ -7,6 +15,7 @@ We provide code for three CO (Combinatorial Optimization) problems, with some va
   - Deterministic prize (TOP)  
   - Stochastic prize (STOP)  
 - Orienteering Problem with Hotel Selection  
+
   - Normal version (OPHS)  
   - OPHS with predefined (fixed) hotel order (OPHS_static)  
   - OPHS with predefined (fixed) hotel order and variable day number (OPHS_static_DD)  
@@ -26,6 +35,7 @@ We provide code for three CO (Combinatorial Optimization) problems, with some va
 All OPHS instances are based on datasets from [KU Leuven's benchmark set](https://www.mech.kuleuven.be/en/cib/op).  
 Stochastic prize instances were derived from these originals, and all instance files are available in the `Instances` folder.
 
+All results for the **OPHS and OPHSSP instances** used in the paper are available in the `results` folder.
 
 ### Basic Usage
 
@@ -44,3 +54,10 @@ You can set parameters for the heuristic algorithm, such as the number of repeti
 ### Used Libraries
 
 All required packages are listed in the `requirements.txt` file.
+
+---
+
+### Reference
+
+A. Ebrahimi, A. Divsalar, **Reinforcement Learning for the Orienteering Problem with Hotel Selection under Uncertainty**, submitted to journal *Expert Systems with Applications*.
+

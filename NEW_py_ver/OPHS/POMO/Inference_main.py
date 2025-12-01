@@ -26,7 +26,7 @@ CUDA_DEVICE_NUM = 0
 
 ##########################################################################################
 # parameters
-stochastic_prize = True
+stochastic_prize = False
 
 model_params = {
     'stochastic_prize': stochastic_prize,
@@ -44,8 +44,8 @@ tester_params = {
     'use_cuda': USE_CUDA,
     'cuda_device_num': CUDA_DEVICE_NUM,
     'model_load': {
-        'path': './result/ophssp_do_32',  # directory path of pre-trained model and log files saved.
-        'epoch': 200,  # epoch number of pre-trained model to laod.
+        'path': './result/ophs_do_100',  # directory path of pre-trained model and log files saved.      ############ does not MATTER!!!!
+        'epoch': 200,  # epoch number of pre-trained model to laod.                                     ############ does not MATTER!!!!
     },
     'test_episodes': 10*1000,
     'test_batch_size': 1000,
@@ -212,14 +212,21 @@ def run_repeats(instance_name, repeats, node_scores):
 #####################################################   Main loop   ###################################################################################
 
 #inputs
-base_pt_path = "../../../Instances/OPHSSP_pt/*.pt"
-base_ophs_path = "../../../Instances/raw_OPHSSP_instances/*.ophs"
+base_pt_path = "../../../Instances/new_pt/*.pt"
+base_ophs_path = "../../../Instances/new_raw/*.ophs"
 output_dir = "output_results"
 os.makedirs(output_dir, exist_ok=True)
-output_file = os.path.join(output_dir, "RL32_OPHSSP.xlsx")
+# output_file = os.path.join(output_dir, "test.xlsx")
 
-augmentation_factor = 16
-repeats = 3
+augmentation_factor = 32
+repeats = 1
+
+model_configs = [
+    # {"path": "./result/ophssp_do_32", "epoch": 200, "name": "OPHSSP_RL_trained_on_32"},
+    # {"path": "./result/ophssp_do_64", "epoch": 200, "name": "OPHSSP_RL_trained_on_64"},
+    {"path": "./result/ophs_do_100", "epoch": 200, "name": "OPHSSP_RL_trained_on_100_testttttting"},
+    # {"path": "./result/ophssp_do_100_XL_old", "epoch": 200, "name": "OPHSSP_RL_trained_on_100_XL"},
+]
 
 pt_instances = natsorted(glob.glob(base_pt_path))
 ophs_instances = natsorted(glob.glob(base_ophs_path))
@@ -227,59 +234,65 @@ ophs_instances = natsorted(glob.glob(base_ophs_path))
 pt_instances = [os.path.normpath(p) for p in pt_instances]
 ophs_instances = [os.path.normpath(p) for p in ophs_instances]
 
-all_results = []
+for model_config in model_configs:
+    tester_params['model_load']['path'] = model_config["path"]
+    tester_params['model_load']['epoch'] = model_config["epoch"]
 
-for index, pt_path in enumerate(pt_instances):
-    instance_name = os.path.basename(pt_path).replace(".pt", "")
-    problem_size, _, hotel_size, day_number = map(int, instance_name.split('-'))
-    problem_size -= 2  # Adjust as per naming convention
-    hotel_size += 2  # Adjust as per naming convention
-    
-    env_params = {
-        'problem_size': problem_size,
-        'pomo_size': problem_size,
-        'hotel_size': hotel_size,
-        'day_number': day_number,
-        'stochastic_prize': stochastic_prize,
-    }
+    output_file = os.path.join(output_dir, f"{model_config['name']}.xlsx")
 
-    tester_params['aug_factor'] = augmentation_factor
-    tester_params['test_data_load']['filename'] = pt_path
+    all_results = []
 
-    # Get corresponding .ophs file
-    ophs_path = os.path.normpath(pt_path.replace("OPHSSP_pt", "raw_OPHSSP_instances").replace(".pt", ".ophs"))      # replace names here too
-    if ophs_path not in ophs_instances:
-        print(f"Warning: No corresponding .ophs file found for {instance_name}")
-        continue
-    
-    # Parse instance and run testing
-    print(f"\nRunning for instance {index+1}/ {len(pt_instances)}, {instance_name}\n")
-    node_scores, x_coords, y_coords = parse_instance(ophs_path, stochastic_prize)
-    df_results = run_repeats(instance_name, repeats, node_scores)
-    all_results.append(df_results)
+    for index, pt_path in enumerate(pt_instances):
+        instance_name = os.path.basename(pt_path).replace(".pt", "")
+        problem_size, _, hotel_size, day_number = map(int, instance_name.split('-'))
+        problem_size -= 2  # Adjust as per naming convention
+        hotel_size += 2  # Adjust as per naming convention
+        
+        env_params = {
+            'problem_size': problem_size,
+            'pomo_size': problem_size,
+            'hotel_size': hotel_size,
+            'day_number': day_number,
+            'stochastic_prize': stochastic_prize,
+        }
 
-# Combine results from all instances
-final_results = pd.concat(all_results, ignore_index=True)
+        tester_params['aug_factor'] = augmentation_factor
+        tester_params['test_data_load']['filename'] = pt_path
 
-summary = final_results.groupby("Instance").agg(
-    Mean_Final_Score=("Final_Score", "mean"),
-    Max_Final_Score=("Final_Score", "max"),
-    Min_Final_Score=("Final_Score", "min"),
-    Mean_Runtime=("Runtime", "mean"),
-    Max_Runtime=("Runtime", "max"),
-    Min_Runtime=("Runtime", "min"),
-).reset_index()
+        # Get corresponding .ophs file
+        ophs_path = os.path.normpath(pt_path.replace("new_pt", "new_raw").replace(".pt", ".ophs"))      # replace names here too
+        if ophs_path not in ophs_instances:
+            print(f"Warning: No corresponding .ophs file found for {instance_name}")
+            continue
+        
+        # Parse instance and run testing
+        print(f"\nRunning for instance {index+1}/ {len(pt_instances)}, {instance_name}\n")
+        node_scores, x_coords, y_coords = parse_instance(ophs_path, stochastic_prize)
+        df_results = run_repeats(instance_name, repeats, node_scores)
+        all_results.append(df_results)
 
-best_solution_df = final_results.loc[final_results.groupby("Instance")["Final_Score"].idxmax(), ["Instance", "Best_solution"]]
-summary = summary.merge(best_solution_df, on="Instance", how="left")
+    # Combine results from all instances
+    final_results = pd.concat(all_results, ignore_index=True)
 
-summary = summary.sort_values("Instance", key=natsort_keygen()) # Sort summary by instance name using natural sorting
+    summary = final_results.groupby("Instance").agg(
+        Mean_Final_Score=("Final_Score", "mean"),
+        Max_Final_Score=("Final_Score", "max"),
+        Min_Final_Score=("Final_Score", "min"),
+        Mean_Runtime=("Runtime", "mean"),
+        Max_Runtime=("Runtime", "max"),
+        Min_Runtime=("Runtime", "min"),
+    ).reset_index()
 
-with pd.ExcelWriter(output_file) as writer:
-    final_results.to_excel(writer, index=False, sheet_name="Raw Results")
-    summary.to_excel(writer, index=False, sheet_name="Summary Statistics")
+    best_solution_df = final_results.loc[final_results.groupby("Instance")["Final_Score"].idxmax(), ["Instance", "Best_solution"]]
+    summary = summary.merge(best_solution_df, on="Instance", how="left")
 
-print(f"\nResults saved to {output_file}\n")
+    summary = summary.sort_values("Instance", key=natsort_keygen()) # Sort summary by instance name using natural sorting
+
+    with pd.ExcelWriter(output_file) as writer:
+        final_results.to_excel(writer, index=False, sheet_name="Raw Results")
+        summary.to_excel(writer, index=False, sheet_name="Summary Statistics")
+
+    print(f"\nResults saved to {output_file}\n")
 
 ########################################## validity check ##########################################
 

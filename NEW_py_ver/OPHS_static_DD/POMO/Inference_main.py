@@ -582,7 +582,6 @@ for model_config in model_configs:
                 Mean_Runtime=("Runtime", "mean"),
                 Max_Runtime=("Runtime", "max"),
                 Min_Runtime=("Runtime", "min"),
-                Mean_iter_to_converge = ("iteration_to_converge", "mean"),
             ).reset_index()
 
     best_solution_df = final_results.loc[final_results.groupby("Instance")["Final_Score"].idxmax(), ["Instance", "Best_solution"]]

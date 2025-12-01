@@ -40,13 +40,17 @@ def process_ophs_file(filepath, output_dir):
     all_nodes = torch.cat((hotel_xy_tensor, node_xy_tensor), dim=0)
 
     # Rescale tensors to have values between 0 and 1
-    x_min = all_nodes[:, 0].min()
-    x_max = all_nodes[:, 0].max()
-    y_min = all_nodes[:, 1].min()
-    y_max = all_nodes[:, 1].max()
+    x_min, y_min = all_nodes[:, 0].min(), all_nodes[:, 1].min()
+    x_max, y_max = all_nodes[:, 0].max(), all_nodes[:, 1].max()
+    
+    range_x = x_max - x_min
+    range_y = y_max - y_min
 
-    node_xy_rescaled = (node_xy_tensor - torch.tensor([x_min, y_min])) / torch.tensor([x_max - x_min, y_max - y_min])
-    hotel_xy_rescaled = (hotel_xy_tensor - torch.tensor([x_min, y_min])) / torch.tensor([x_max - x_min, y_max - y_min])
+    scale = max(range_x, range_y)          # uniform scale
+
+    node_xy_rescaled = (node_xy_tensor - torch.tensor([x_min, y_min])) / scale
+    hotel_xy_rescaled = (hotel_xy_tensor - torch.tensor([x_min, y_min])) / scale
+
 
     # Rescale node_prize_tensor to have values between 0.02 and 0.99
     prize_min = node_prize_tensor.min()
@@ -131,9 +135,13 @@ def process_ophssp_file(filepath, output_dir):
     y_min = all_nodes[:, 1].min()
     y_max = all_nodes[:, 1].max()
 
-    node_xy_rescaled = (node_xy_tensor - torch.tensor([x_min, y_min])) / torch.tensor([x_max - x_min, y_max - y_min])
-    hotel_xy_rescaled = (hotel_xy_tensor - torch.tensor([x_min, y_min])) / torch.tensor([x_max - x_min, y_max - y_min])
+    range_x = x_max - x_min
+    range_y = y_max - y_min
 
+    node_xy_rescaled = (node_xy_tensor - torch.tensor([x_min, y_min])) / max(range_x, range_y)
+    hotel_xy_rescaled = (hotel_xy_tensor - torch.tensor([x_min, y_min])) / max(range_x, range_y)
+
+ 
     # Rescale node_prize_tensor to have values between 0.02 and 0.99
     mean_min = mean_tensor.min()
     mean_max = mean_tensor.max()

@@ -568,7 +568,7 @@ for model_config in model_configs:
             continue
 
         # Parse instance and run testing
-        print(f"\nRunning for model {model_config['name']} - instance {index+1}/{len(pt_instances)}, {instance_name}\n")
+        print(f"\nRunning for model {model_config['name']} - instance {index+1}/{len(pt_instances)} ({((index+1)/len(pt_instances))*100}%), {instance_name}\n")
         hps, scores, hotels_number, day_number, x_coords, y_coords = parse_instance(ophs_path, stochastic_prize)
         df_results = run_repeats(instance_name, hps, hotels_number, day_number, repeats, scores)
         all_results.append(df_results)
@@ -582,7 +582,6 @@ for model_config in model_configs:
                 Mean_Runtime=("Runtime", "mean"),
                 Max_Runtime=("Runtime", "max"),
                 Min_Runtime=("Runtime", "min"),
-                Mean_iter_to_converge = ("iteration_to_converge", "mean"),
             ).reset_index()
 
     best_solution_df = final_results.loc[final_results.groupby("Instance")["Final_Score"].idxmax(), ["Instance", "Best_solution"]]
